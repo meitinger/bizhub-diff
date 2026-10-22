@@ -1,0 +1,751 @@
+﻿<!doctype html>
+<html lang="en">
+
+<head>
+  <meta name="ms-sp-authoring-source" content="agent">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>bizhub configuration diff</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --background: #f5f7fb;
+      --panel: #ffffff;
+      --text: #172033;
+      --muted: #667085;
+      --border: #d9dee8;
+      --accent: #2563eb;
+      --shadow: 0 8px 28px #10182814;
+      --added: #067647;
+      --added-bg: #ecfdf3;
+      --removed: #b42318;
+      --removed-bg: #fef3f2;
+      --changed: #b54708;
+      --changed-bg: #fffaeb;
+      --moved: #175cd3;
+      --moved-bg: #eff8ff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background: #0e1420;
+        --panel: #151d2b;
+        --text: #eef2f8;
+        --muted: #a5afc0;
+        --border: #344054;
+        --accent: #84adff;
+        --shadow: none;
+        --added: #75e0a7;
+        --added-bg: #073d2b;
+        --removed: #fda29b;
+        --removed-bg: #4a1714;
+        --changed: #fec84b;
+        --changed-bg: #4e2c0c;
+        --moved: #84adff;
+        --moved-bg: #102a56;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--background);
+      color: var(--text);
+      font: 14px/1.45 system-ui, sans-serif;
+    }
+
+    main {
+      max-width: 1500px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .panel,
+    details,
+    .page {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .panel {
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .file-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 12px;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      font-weight: 650;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+    }
+
+    input[type="file"],
+    input[type="search"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    input[type="search"]::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+    }
+
+    .path-autocomplete {
+      position: relative;
+    }
+
+    .path-options {
+      position: absolute;
+      z-index: 4;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      max-height: 260px;
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .path-option {
+      display: block;
+      width: 100%;
+      padding: 7px 9px;
+      border: 0;
+      border-radius: 0;
+      color: var(--text);
+      background: transparent;
+      text-align: left;
+      font: 12px/1.35 monospace;
+      font-weight: 400;
+    }
+
+    .path-option:hover,
+    .path-option:focus {
+      color: var(--text);
+      background: color-mix(in srgb, var(--accent) 12%, transparent);
+    }
+
+    input[type="file"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    textarea {
+      min-height: 190px;
+      resize: vertical;
+      margin-top: 6px;
+      font: 12px/1.45 monospace;
+    }
+
+    button {
+      padding: 10px 15px;
+      border: 0;
+      border-radius: 8px;
+      color: white;
+      background: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    .registry {
+      margin-top: 14px;
+      padding: 0 12px;
+    }
+
+    .registry[open] {
+      padding-bottom: 12px;
+    }
+
+    .registry summary {
+      margin: 0 -12px;
+      padding: 12px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .registry>div {
+      padding-top: 10px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .error {
+      margin-top: 8px;
+      color: var(--removed);
+    }
+
+    .stats {
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      margin: 3px;
+      padding: 4px 9px;
+      border: 1px solid currentColor;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .added {
+      color: var(--added);
+      background: var(--added-bg);
+    }
+
+    .removed {
+      color: var(--removed);
+      background: var(--removed-bg);
+    }
+
+    .changed {
+      color: var(--changed);
+      background: var(--changed-bg);
+    }
+
+    .moved {
+      color: var(--moved);
+      background: var(--moved-bg);
+    }
+
+    tr.added td:first-child,
+    tr.removed td:first-child,
+    tr.changed td:first-child,
+    tr.moved td:first-child {
+      font-weight: 800;
+      text-transform: capitalize;
+    }
+
+    #output .panel {
+      height: var(--table-height, 50vh);
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .empty-state {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .empty-state h2 {
+      margin: 0 0 8px;
+    }
+
+    .empty-state p {
+      max-width: 480px;
+      margin: 0;
+    }
+
+    .rows {
+      flex: 1;
+      min-height: 0;
+    }
+
+    tbody tr:hover {
+      background: color-mix(in srgb, var(--accent) 7%, transparent);
+    }
+
+    :focus-visible {
+      outline: 3px solid color-mix(in srgb, var(--accent) 65%, transparent);
+      outline-offset: 2px;
+    }
+
+    .rows {
+      overflow: auto;
+      border-top: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      min-width: 1000px;
+      table-layout: fixed;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    th,
+    td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    thead {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    th {
+      color: var(--muted);
+      background: var(--panel);
+      font-size: 12px;
+    }
+
+    .type-column,
+    .scope-column {
+      white-space: nowrap;
+    }
+
+    .type-column {
+      width: 10ch;
+    }
+
+    .scope-column {
+      width: 8ch;
+    }
+
+    .value-column {
+      width: 25%;
+    }
+
+    .menu-path {
+      color: var(--accent);
+      font-family: system-ui, sans-serif;
+      font-weight: 650;
+      text-decoration: underline dotted;
+      text-underline-offset: 3px;
+      cursor: help;
+    }
+
+    .path-separator {
+      color: var(--muted);
+    }
+
+    td {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      font-family: monospace;
+    }
+
+    td.menu-column {
+      min-width: 260px;
+      font-family: system-ui, sans-serif;
+    }
+
+    @media (max-width: 850px) {
+
+      .file-row,
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      main {
+        padding: 12px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <section id="chooser" class="panel">
+      <div class="file-row">
+        <label>Left configuration<input id="left-file" type="file" accept=".json,application/json"></label>
+        <label>Right configuration<input id="right-file" type="file" accept=".json,application/json"></label>
+        <button id="compare" disabled>Compare</button>
+      </div>
+      <div id="error" class="error hidden" role="alert"></div>
+      <div id="stats" class="stats hidden"></div>
+      <details class="registry">
+        <summary>Array discriminators</summary>
+        <div>
+          <textarea id="rules" spellcheck="false">* = Index
+000_001_ROM000.VersionList = Name
+000_008_WKT000.WeeklyTimer.WeeklyTimerSettingList = Week
+000_008_WKT000.WeeklyTimer.LearningSetting.LearningTimerList = Week
+001_010_HFR000.HeaderFooter.HeaderFooterStampList = HeaderFooterID
+001_023_CPA000.CustomPaper.CustomPaperDataList = Name
+001_028_MLP000.Input.TrayList = TrayID
+001_045_DCO000.CommonPaperHandling.AutoTraySelect.PriorityTrayList = TrayID
+002_003_RGR000.ReferLicence.ReferLicenceGroupList = ReferGroupNo
+002_003_RAL000.CommonMode.ReferLicenceGroupList = ReferGroupNo
+004_000_TCP000.TcpipGeneral.Address.AutoConfigList = Name
+004_000_TCP000.TcpipGeneral.Dns.ServerList = Priority
+004_000_TCP000.TcpipGeneral.Dns.Ipv6ServerList = Priority
+004_000_TCP002.RawPort.PortInfoList = PortNo
+004_001_ESM000.UserCounterInfo.CopyCounterList = Type
+004_002_LSE000.ServerList[].AuthenticationUserList = User
+004_002_LDP000.Ldap.ServerList[].AuthenticationUserList = User
+004_005_SNM000.Snmp.CommunityList = CommunityName
+004_005_SNM000.Snmp.UserList = UserName
+004_006_WIN000.WindowsNetwork.Wins.ServerList = Priority
+004_031_AAP000.Ipp.OperationList = Type
+004_033_HSS000.Ipp.OperationList = Type
+004_036_NSL000.Input.TrayList = TrayID
+007_004_TTL000.Scan.SubjectInfoList = SubjectNo
+007_005_BOD000.Scan.ContentInfoList = ContentNo
+007_009_SBL000.Input.TrayList = TrayID
+018_003_ECS000.CardCopy.DocumentInfoList = DocumentName
+019_000_FAS000.DefaultFaxScanSettingList = DisplayType
+106_000_OPS000.TrayList = TrayID
+106_005_OFF000.CustomPaper.CustomPaperDataList = Name
+111_007_PRI000.Input.TrayList = TrayID
+114_002_FTS000.Input.TrayList = TrayID
+114_004_LPT000.Input.TrayList = TrayID
+118_000_BAS000.DefaultCopySettingList = DisplayType
+118_000_BAS000.Input.TrayList = TrayID
+118_002_CAC000.CardCopy.DocumentInfoList = DocumentName</textarea>
+          <p class="muted">Format: <code>page.path = property</code>. Use <code>[]</code> through nested arrays.
+            Unregistered arrays are positional.</p>
+        </div>
+      </details>
+    </section>
+    <section id="results">
+      <div id="output">
+        <section class="panel empty-state">
+          <h2>Compare bizhub configurations</h2>
+          <p class="muted">Choose two JSON configuration files, then select Compare to review the differences.</p>
+        </section>
+      </div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+
+      const select = selector => document.querySelector(selector);
+      const leftFile = select("#left-file");
+      const rightFile = select("#right-file");
+      const compareButton = select("#compare");
+      const errorBox = select("#error");
+      const results = select("#results");
+      const output = select("#output");
+      const rulesText = select("#rules");
+      const stats = select("#stats");
+      const chooser = select("#chooser");
+      const registry = select(".registry");
+      const MISSING = Symbol("missing");
+
+      function updateTableHeight() {
+        const top = output.getBoundingClientRect().top;
+        const bottomPadding = Number.parseFloat(getComputedStyle(select("main")).paddingBottom) || 0;
+        document.documentElement.style.setProperty("--table-height", Math.max(0, window.innerHeight - top - bottomPadding) + "px");
+      }
+      updateTableHeight();
+
+      let differences = [];
+      const filters = { kind: "", scope: "", path: "", left: "", right: "", pathActive: false };
+
+      const isObject = value => value !== null && typeof value === "object" && !Array.isArray(value);
+      const has = (object, property) => isObject(object) && Object.prototype.hasOwnProperty.call(object, property);
+      const escapeHtml = value => String(value).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" })[c]);
+
+      function displayValue(value) {
+        if (value === MISSING) return "—";
+        if (typeof value === "string") return value;
+        return JSON.stringify(value, null, isObject(value) || Array.isArray(value) ? 2 : 0);
+      }
+
+      function canonical(value) {
+        if (Array.isArray(value)) return `[${value.map(canonical).sort().join(",")}]`;
+        if (isObject(value)) return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}`;
+        return JSON.stringify(value);
+      }
+
+      function normalize(value) {
+        if (Array.isArray(value)) return value.map(normalize);
+        if (!isObject(value)) return value;
+        if (has(value, "ArraySize")) {
+          const payloadKeys = Object.keys(value).filter(key => key !== "ArraySize");
+          if (payloadKeys.length === 0 && Number(value.ArraySize) === 0) return [];
+          if (payloadKeys.length === 1) {
+            const payload = value[payloadKeys[0]];
+            const items = Array.isArray(payload) ? payload : payload === undefined ? [] : [payload];
+            return items.map(normalize);
+          }
+        }
+        return Object.fromEntries(Object.entries(value).filter(([key]) => key !== "ArraySize").map(([key, item]) => [key, normalize(item)]));
+      }
+
+      function parseRegistry() {
+        const exact = new Map();
+        const global = [];
+        rulesText.value.split(/\r?\n/).forEach((original, index) => {
+          const line = original.replace(/\s*#.*$/, "").trim();
+          if (!line) return;
+          const match = line.match(/^(.+?)\s*=\s*(\S+)$/);
+          if (!match) throw new Error(`Invalid discriminator rule on line ${index + 1}: ${original}`);
+          const path = match[1].trim();
+          if (path === "*") global.push(match[2]); else exact.set(path, match[2]);
+        });
+        return { exact, global };
+      }
+
+      function discriminatorFor(context, left, right) {
+        const exact = context.registry.exact.get(`${context.page}.${context.rawPath}`);
+        if (exact) return exact;
+        return context.registry.global.find(key => [...left, ...right].some(item => has(item, key))) ?? null;
+      }
+
+      function addDifference(target, kind, path, left, right) { target.push({ kind, path, left, right }); }
+
+      function diff(left, right, path, target, context) {
+        if (left === MISSING) return addDifference(target, "added", path, left, right);
+        if (right === MISSING) return addDifference(target, "removed", path, left, right);
+        if (Object.is(left, right)) return;
+
+        if (Array.isArray(left) && Array.isArray(right)) {
+          return diffArray(left, right, path, target, context);
+        }
+
+        if (isObject(left) && isObject(right)) {
+          const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+          for (const key of keys) {
+            diff(
+              has(left, key) ? left[key] : MISSING,
+              has(right, key) ? right[key] : MISSING,
+              `${path}.${key}`,
+              target,
+              { ...context, rawPath: context.rawPath + (context.rawPath ? "." : "") + key }
+            );
+          }
+          return;
+        }
+
+        addDifference(target, "changed", path, left, right);
+      }
+
+      function diffArray(left, right, path, target, context) {
+        const discriminator = discriminatorFor(context, left, right);
+        const childContext = { ...context, rawPath: `${context.rawPath}[]` };
+
+        if (!discriminator) {
+          for (let index = 0; index < Math.max(left.length, right.length); index++) {
+            diff(index < left.length ? left[index] : MISSING, index < right.length ? right[index] : MISSING, `${path}[${index}]`, target, childContext);
+          }
+          return;
+        }
+
+        function createBuckets(items) {
+          const keyed = new Map();
+          const unkeyed = [];
+          items.forEach((item, index) => {
+            if (has(item, discriminator)) {
+              const key = canonical(item[discriminator]);
+              if (!keyed.has(key)) keyed.set(key, []);
+              keyed.get(key).push({ item, index });
+            } else {
+              unkeyed.push({ item, index });
+            }
+          });
+          return { keyed, unkeyed };
+        }
+
+        const leftBuckets = createBuckets(left);
+        const rightBuckets = createBuckets(right);
+        const keys = new Set([...leftBuckets.keyed.keys(), ...rightBuckets.keyed.keys()]);
+
+        for (const key of keys) {
+          const leftItems = leftBuckets.keyed.get(key) ?? [];
+          const rightItems = rightBuckets.keyed.get(key) ?? [];
+          for (let occurrence = 0; occurrence < Math.max(leftItems.length, rightItems.length); occurrence++) {
+            const leftEntry = leftItems[occurrence];
+            const rightEntry = rightItems[occurrence];
+            const entry = leftEntry ?? rightEntry;
+            const itemPath = `${path}[${discriminator}=${displayValue(entry.item[discriminator])}]`;
+            if (leftEntry && rightEntry && leftEntry.index !== rightEntry.index) {
+              addDifference(target, "moved", itemPath, `index ${leftEntry.index}`, `index ${rightEntry.index}`);
+            }
+            diff(leftEntry ? leftEntry.item : MISSING, rightEntry ? rightEntry.item : MISSING, itemPath, target, childContext);
+          }
+        }
+
+        for (let index = 0; index < Math.max(leftBuckets.unkeyed.length, rightBuckets.unkeyed.length); index++) {
+          diff(
+            leftBuckets.unkeyed[index]?.item ?? MISSING,
+            rightBuckets.unkeyed[index]?.item ?? MISSING,
+            `${path}[no ${discriminator}:${index}]`, target, childContext
+          );
+        }
+      }
+
+      function menuParts(raw) {
+        return (raw ?? "").replace(/^#ID_(?:SpareSubMenu|SpareMenu|SubMenu|Menu)_+/, "").replace(/^#ID_+/, "").split(/_+/).filter(Boolean);
+      }
+
+      function menuLabel(raw) {
+        const parts = menuParts(raw);
+        if (parts[0] === "U") parts.shift();
+        return parts.at(-1);
+      }
+
+      function menuPath(page) {
+        if (page === MISSING) return { scope: "", parts: [] };
+        return { scope: page.Scope ?? "", parts: [page.Menu, page.SubMenu, page.SpareMenu, page.SpareSubMenu].filter(Boolean).map(menuLabel).filter(Boolean) };
+      }
+
+      function pageContext(page, leftPage, rightPage) {
+        const leftContext = menuPath(leftPage);
+        const rightContext = menuPath(rightPage);
+        return { scope: leftContext.scope || rightContext.scope, parts: leftContext.parts.length ? leftContext.parts : rightContext.length ? rightContext.parts : [page] };
+      }
+
+      function compareRoots(left, right, registry) {
+        const result = [];
+        for (const page of new Set([...Object.keys(left), ...Object.keys(right)])) {
+          const leftPage = has(left, page) ? left[page] : MISSING;
+          const rightPage = has(right, page) ? right[page] : MISSING;
+          const context = pageContext(page, leftPage, rightPage);
+          const pageDifferences = [];
+          diff(leftPage === MISSING ? MISSING : normalize(leftPage.Settings), rightPage === MISSING ? MISSING : normalize(rightPage.Settings), "Settings", pageDifferences, { page, rawPath: "", registry });
+          for (const difference of pageDifferences) {
+            const settingPath = difference.path.replace(/^Settings\.?/, "");
+            const searchPath = [page, ...context.parts, settingPath].filter(Boolean).join(".");
+            result.push({ ...difference, scope: context.scope, pageId: page, menu: context.parts, path: settingPath, searchPath });
+          }
+        }
+        return result;
+      }
+
+      function matches(value, filter) { return !filter || String(value).toLowerCase().includes(filter.toLowerCase()); }
+
+      function pathHtml(row) {
+        const menus = row.menu.map(escapeHtml).join("<span class=\"path-separator\">.</span>");
+        const menuHtml = menus ? "<abbr class=\"menu-path\" title=\"" + escapeHtml(row.pageId) + "\">" + menus + "</abbr>" : "";
+        const setting = escapeHtml(row.path);
+        return menuHtml && setting ? menuHtml + "<span class=\"path-separator\">.</span>" + setting : menuHtml || setting;
+      }
+
+      function menuFilterPath(row) {
+        return row.menu.filter(Boolean).join(".");
+      }
+
+      function pathOptionsHtml() {
+        const query = filters.path.trim().toLowerCase();
+        const menus = [...new Set(differences.map(menuFilterPath).filter(Boolean))]
+          .filter(menu => !query || menu.toLowerCase().includes(query))
+          .sort((left, right) => left.localeCompare(right));
+        return menus.slice(0, 100).map(menu => "<button type=\"button\" class=\"path-option\" data-path-option=\"" + escapeHtml(menu) + "\">" + escapeHtml(menu) + "</button>").join("");
+      }
+
+      function tableHtml(items) {
+        const body = items.map(row => "<tr class=\"" + row.kind + "\"><td class=\"type-column\">" + row.kind + "</td><td class=\"scope-column\">" + escapeHtml(row.scope) + "</td><td>" + pathHtml(row) + "</td><td class=\"value-column\">" + escapeHtml(displayValue(row.left)) + "</td><td class=\"value-column\">" + escapeHtml(displayValue(row.right)) + "</td></tr>").join("");
+        const empty = items.length ? body : "<tr><td colspan=\"5\" class=\"muted\">No differences match the active filters.</td></tr>";
+        const suggestions = filters.pathActive ? "<div class=\"path-options\" role=\"listbox\">" + pathOptionsHtml() + "</div>" : "";
+        return "<div class=\"rows\"><table><thead><tr><th class=\"type-column\">Type</th><th class=\"scope-column\">Scope</th><th>Menus and path</th><th class=\"value-column\">" + escapeHtml(leftFile.files[0].name) + "</th><th class=\"value-column\">" + escapeHtml(rightFile.files[0].name) + "</th></tr><tr class=\"table-filters\"><th class=\"type-column\"><select data-filter=\"kind\" aria-label=\"Filter type\"><option value=\"\">All</option><option value=\"changed\">Changed</option><option value=\"added\">Added</option><option value=\"removed\">Removed</option><option value=\"moved\">Moved</option></select></th><th class=\"scope-column\"><select data-filter=\"scope\" aria-label=\"Filter scope\"><option value=\"\">All</option><option value=\"User\">User</option><option value=\"Admin\">Admin</option></select></th><th><div class=\"path-autocomplete\"><input data-filter=\"path\" type=\"search\" placeholder=\"Filter menu\" aria-label=\"Filter menu\" autocomplete=\"off\" aria-expanded=\"" + (filters.pathActive ? "true" : "false") + "\">" + suggestions + "</div></th><th class=\"value-column\"><input data-filter=\"left\" type=\"search\" placeholder=\"Filter first value\" aria-label=\"Filter first value\"></th><th class=\"value-column\"><input data-filter=\"right\" type=\"search\" placeholder=\"Filter second value\" aria-label=\"Filter second value\"></th></tr></thead><tbody>" + empty + "</tbody></table></div>";
+      }
+
+      function render() {
+        const visible = differences.filter(row => (!filters.kind || row.kind === filters.kind) && (!filters.scope || row.scope.toLowerCase() === filters.scope.toLowerCase()) && matches(menuFilterPath(row), filters.path) && matches(displayValue(row.left), filters.left) && matches(displayValue(row.right), filters.right));
+        stats.innerHTML = ["changed", "added", "removed", "moved"].map(kind => "<span class=\"badge " + kind + "\">" + differences.filter(row => row.kind === kind).length + " " + kind + "</span>").join("") + "<span class=\"badge\">" + visible.length + " shown</span>";
+        stats.classList.remove("hidden");
+        updateTableHeight();
+        output.innerHTML = "<section class=\"panel\">" + tableHtml(visible) + "</section>";
+        output.querySelectorAll("[data-filter]").forEach(input => {
+          input.value = filters[input.dataset.filter];
+          input.addEventListener(input.tagName === "SELECT" ? "change" : "input", () => {
+            filters[input.dataset.filter] = input.value;
+            render();
+            const replacement = output.querySelector('[data-filter="' + input.dataset.filter + '"]');
+            if (replacement && replacement.tagName !== "SELECT") {
+              replacement.focus();
+              replacement.setSelectionRange(replacement.value.length, replacement.value.length);
+            }
+          });
+          if (input.dataset.filter === "path") {
+            input.addEventListener("focus", () => {
+              if (!filters.pathActive) {
+                filters.pathActive = true;
+                render();
+              }
+            });
+            input.addEventListener("keydown", event => {
+              if (event.key === "Escape" || event.key === "Enter") {
+                event.preventDefault();
+                filters.pathActive = false;
+                render();
+              }
+            });
+          }
+        });
+        output.querySelectorAll("[data-path-option]").forEach(option => option.addEventListener("mousedown", event => {
+          event.preventDefault();
+          filters.path = option.dataset.pathOption;
+          filters.pathActive = false;
+          render();
+        }));
+      }
+      document.addEventListener("mousedown", event => {
+        if (filters.pathActive && (!event.target.closest || !event.target.closest(".path-autocomplete"))) {
+          filters.pathActive = false;
+          render();
+        }
+      });
+      async function readJson(file) {
+        const value = JSON.parse(await file.text());
+        if (!isObject(value)) throw new Error("Each configuration must be a JSON object keyed by page ID.");
+        return value;
+      }
+      [leftFile, rightFile].forEach(input => input.addEventListener("change", () => {
+        compareButton.disabled = !(leftFile.files[0] && rightFile.files[0]);
+        updateTableHeight();
+      }));
+      registry.addEventListener("toggle", updateTableHeight);
+      window.addEventListener("resize", updateTableHeight);
+      compareButton.addEventListener("click", async () => {
+        try {
+          errorBox.classList.add("hidden");
+          const [left, right] = await Promise.all([readJson(leftFile.files[0]), readJson(rightFile.files[0])]);
+          differences = compareRoots(left, right, parseRegistry());
+          Object.assign(filters, { kind: "", scope: "", path: "", left: "", right: "", pathActive: false });
+          render();
+        } catch (error) {
+          errorBox.textContent = error.message;
+          errorBox.classList.remove("hidden");
+          updateTableHeight();
+        }
+      });
+    })();
+  </script>
+</body>
+
+</html>
