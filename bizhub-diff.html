@@ -626,7 +626,7 @@
       function pageContext(page, leftPage, rightPage) {
         const leftContext = menuPath(leftPage);
         const rightContext = menuPath(rightPage);
-        return { scope: leftContext.scope || rightContext.scope, parts: leftContext.parts.length ? leftContext.parts : rightContext.length ? rightContext.parts : [page] };
+        return { scope: leftContext.scope || rightContext.scope, parts: leftContext.parts.length ? leftContext.parts : rightContext.parts.length ? rightContext.parts : [page] };
       }
 
       function compareRoots(left, right, registry) {
